@@ -141,6 +141,15 @@
     linear-gradient(90deg, color-mix(in srgb,var(--bg) 78%,transparent) 0%, color-mix(in srgb,var(--bg) 24%,transparent) 52%, transparent 100%),
     radial-gradient(70% 55% at 18% 42%, var(--primary-soft), transparent 60%),
     radial-gradient(55% 45% at 92% 82%, var(--accent-soft), transparent 66%);}
+  .video-wall{position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:8px;opacity:.62}
+  .wall-col{position:relative;overflow:hidden}
+  .wall-track{display:flex;flex-direction:column;gap:8px;animation:wallScrollUp var(--dur,44s) linear infinite;will-change:transform}
+  .wall-col.reverse .wall-track{animation-name:wallScrollDown}
+  .wall-track video{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;display:block;background:var(--surface-2);filter:brightness(.86) contrast(1.02)}
+  @keyframes wallScrollUp{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+  @keyframes wallScrollDown{from{transform:translateY(-50%)}to{transform:translateY(0)}}
+  @media(max-width:760px){.video-wall{display:none}}
+  @media(prefers-reduced-motion:reduce){.video-wall{display:none}}
   .cursor-glow{position:absolute;width:520px;height:520px;border-radius:50%;pointer-events:none;z-index:0;
     background:radial-gradient(circle, var(--primary-glow), transparent 62%);opacity:.5;transform:translate(-50%,-50%);transition:opacity .4s;mix-blend-mode:screen}
   .hero-inner{position:relative;z-index:3;max-width:960px}
@@ -700,6 +709,7 @@
   <div class="bar top"></div>
   <div class="hero-bg" id="heroBg">
     <div class="frame f1" data-parallax="0.06"></div>
+    <div class="video-wall" id="videoWall" aria-hidden="true"></div>
   </div>
   <div class="cursor-glow" id="cursorGlow"></div>
   <div class="wrap hero-inner">
@@ -1665,6 +1675,53 @@ document.getElementById('copyBib').onclick=async()=>{
     const s=document.querySelector('#copyBib span');s.textContent='Copied';setTimeout(()=>s.textContent='Copy',1800);
   }catch(e){showToast('Copy failed — select the text manually');}
 };
+
+/* ================= hero video wall ================= */
+(function(){
+  try{
+    const wall=document.getElementById('videoWall');
+    if(!wall) return;
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if(matchMedia('(max-width: 760px)').matches) return;
+    const items=[];
+    try{Object.entries(VIDEO_URLS).forEach(([nid,m])=>{if(m&&m.ours&&m.ours.sd)items.push({src:m.ours.sd,poster:'assets/posters/'+nid+'__ours.jpg'});});}catch(e){}
+    try{if(STYLE_EXTRA.disney3d&&STYLE_EXTRA.disney3d.sd)items.push({src:STYLE_EXTRA.disney3d.sd,poster:'assets/posters/style_disney3d.jpg'});
+        if(STYLE_EXTRA.real&&STYLE_EXTRA.real.sd)items.push({src:STYLE_EXTRA.real.sd,poster:'assets/posters/style_real.jpg'});}catch(e){}
+    if(items.length<4) return;
+    for(let i=items.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[items[i],items[j]]=[items[j],items[i]];}
+    const COLS=5, PER=3, durs=[42,50,45,53,47], vids=[];
+    let idx=0;
+    for(let c=0;c<COLS;c++){
+      const col=document.createElement('div');
+      col.className='wall-col'+(c%2?' reverse':'');
+      const track=document.createElement('div');
+      track.className='wall-track';
+      track.style.setProperty('--dur',durs[c%durs.length]+'s');
+      const tiles=[];
+      for(let t=0;t<PER;t++){tiles.push(items[idx%items.length]);idx++;}
+      tiles.concat(tiles).forEach(it=>{
+        const v=document.createElement('video');
+        v.muted=true;v.loop=true;v.playsInline=true;
+        v.setAttribute('playsinline','');v.setAttribute('muted','');v.preload='none';
+        if(it.poster) v.poster=it.poster;      /* instant local first-frame */
+        v.dataset.src=it.src;                  /* real clip assigned lazily */
+        v.addEventListener('loadeddata',()=>{v.play().catch(()=>{});});
+        track.appendChild(v);vids.push(v);
+      });
+      col.appendChild(track);wall.appendChild(col);
+    }
+    const startVid=v=>{if(!v.src&&v.dataset.src){v.src=v.dataset.src;}const p=v.play&&v.play();if(p&&p.catch)p.catch(()=>{});};
+    /* staggered start so clips don't all hit the network at once */
+    vids.forEach((v,i)=>setTimeout(()=>startVid(v),Math.min(i*120,2600)));
+    const hero=document.getElementById('home');
+    if('IntersectionObserver' in window && hero){
+      new IntersectionObserver(es=>{es.forEach(e=>{
+        if(e.isIntersecting){vids.forEach(startVid);}
+        else{vids.forEach(v=>v.pause());}
+      });},{threshold:0.01}).observe(hero);
+    }
+  }catch(e){}
+})();
 </script>
 </body>
 </html>
