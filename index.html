@@ -1683,10 +1683,27 @@ document.getElementById('copyBib').onclick=async()=>{
     if(!wall) return;
     if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     if(matchMedia('(max-width: 760px)').matches) return;
-    const items=[];
-    try{Object.entries(VIDEO_URLS).forEach(([nid,m])=>{if(m&&m.ours&&m.ours.sd)items.push({src:m.ours.sd,poster:'assets/posters/'+nid+'__ours.jpg'});});}catch(e){}
-    try{if(STYLE_EXTRA.disney3d&&STYLE_EXTRA.disney3d.sd)items.push({src:STYLE_EXTRA.disney3d.sd,poster:'assets/posters/style_disney3d.jpg'});
-        if(STYLE_EXTRA.real&&STYLE_EXTRA.real.sd)items.push({src:STYLE_EXTRA.real.sd,poster:'assets/posters/style_real.jpg'});}catch(e){}
+    /* dedicated 360p / low-bitrate / no-audio clips for the hero wall */
+    const WALL_360P=[
+      {src:"https://zuohaotong-novel2film-evaluation.ms.show/open/filmworld-360p/easy/Slot%20Seven.mp4", poster:"assets/posters/slot-seven__ours.jpg"},
+      {src:"https://zuohaotong-novel2film-evaluation.ms.show/open/filmworld-360p/easy/The%20Flower%20Aside%20Window.mp4", poster:"assets/posters/flower-window__ours.jpg"},
+      {src:"https://zuohaotong-novel2film-evaluation.ms.show/open/filmworld-360p/easy/%E4%B8%80%E7%9B%8F%E7%81%AF.mp4", poster:"assets/posters/a-single-lamp__ours.jpg"},
+      {src:"https://zuohaotong-novel2film-evaluation.ms.show/open/filmworld-360p/easy/%E5%8D%8E%E5%BC%BA%E4%B9%B0%E7%93%9C.mp4", poster:"assets/posters/huaqiang-melon__ours.jpg"},
+      {src:"https://zuohaotong-novel2film-evaluation.ms.show/open/filmworld-360p/easy/%E8%BD%A6%E7%AB%99%E7%9B%B8%E9%81%87.mp4", poster:"assets/posters/station-meeting__ours.jpg"},
+      {src:"https://zuohaotong-novel2film-evaluation.ms.show/open/filmworld-360p/hard/The%20Man%20in%20a%20Case.mp4", poster:"assets/posters/man-in-case__ours.jpg"},
+      {src:"https://zuohaotong-novel2film-evaluation.ms.show/open/filmworld-360p/hard/The%20Necklace.mp4", poster:"assets/posters/necklace__ours.jpg"},
+      {src:"https://zuohaotong-novel2film-evaluation.ms.show/open/filmworld-360p/hard/%E6%97%A0%E6%B3%95%E9%87%8D%E5%86%99%E7%9A%84%E5%BA%95%E7%89%87.mp4", poster:"assets/posters/the-negative__ours.jpg"},
+      {src:"https://zuohaotong-novel2film-evaluation.ms.show/open/filmworld-360p/hard/%E6%98%A5%E5%AF%92%E9%87%8C%E7%9A%84%E7%99%BD%E6%96%B9%E5%B7%BE.mp4", poster:"assets/posters/white-kerchief__ours.jpg"},
+      {src:"https://zuohaotong-novel2film-evaluation.ms.show/open/filmworld-360p/hard/%E8%BF%99%E5%8D%95%E6%88%91%E6%8E%A5%E4%BA%86.mp4", poster:"assets/posters/this-job__ours.jpg"},
+      {src:"https://zuohaotong-novel2film-evaluation.ms.show/open/filmworld-360p/medium/A%20Chameleon.mp4", poster:"assets/posters/a-chameleon__ours.jpg"},
+      {src:"https://zuohaotong-novel2film-evaluation.ms.show/open/filmworld-360p/medium/The%20Gift%20of%20the%20Magi.mp4", poster:"assets/posters/gift-magi__ours.jpg"},
+      {src:"https://zuohaotong-novel2film-evaluation.ms.show/open/filmworld-360p/medium/%E5%85%89%E9%98%B4%E7%9A%84%E7%BB%93.mp4", poster:"assets/posters/bond-of-time__ours.jpg"},
+      {src:"https://zuohaotong-novel2film-evaluation.ms.show/open/filmworld-360p/medium/%E5%90%AC%E9%A3%8E%E5%B0%8F%E9%99%A2.mp4", poster:"assets/posters/listening-wind__ours.jpg"},
+      {src:"https://zuohaotong-novel2film-evaluation.ms.show/open/filmworld-360p/medium/%E8%8B%8F%E4%BA%8C%E4%B8%83.mp4", poster:"assets/posters/su-erqi__ours.jpg"},
+      {src:"https://zuohaotong-novel2film-evaluation.ms.show/open/filmworld-360p/other_style/%E5%8D%8E%E5%BC%BA%E4%B9%B0%E7%93%9C-%E7%9C%9F%E4%BA%BA%E7%89%88.mp4", poster:"assets/posters/style_real.jpg"},
+      {src:"https://zuohaotong-novel2film-evaluation.ms.show/open/filmworld-360p/other_style/%E5%8D%8E%E5%BC%BA%E4%B9%B0%E7%93%9C-%E8%BF%AA%E5%A3%AB%E5%B0%BC3d.mp4", poster:"assets/posters/style_disney3d.jpg"},
+    ];
+    const items=WALL_360P.slice();
     if(items.length<4) return;
     for(let i=items.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[items[i],items[j]]=[items[j],items[i]];}
     const COLS=5, PER=3, durs=[42,50,45,53,47], vids=[];
